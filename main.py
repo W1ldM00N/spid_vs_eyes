@@ -146,6 +146,7 @@ boss_4 = False
 
 #_ setting vars
 bg = pygame.image.load("pyg/bg1.png")
+bg_x = 0
 
 bs = pygame.mixer.Sound("pyg/bullet.mp3")
 dd = pygame.mixer.Sound("pyg/hit.mp3")
@@ -310,7 +311,6 @@ bullets = []
 
 #_ clock
 clock = pygame.time.Clock()
-clock.tick(18)
 
 
 #_ blow
@@ -548,7 +548,11 @@ def zaptack(zap_x, zap_y):
 #_ display update
 def updater():
     if d != 7 and d != 21 and d != 40 and d != 61 and not maze and d != 151:
-        screen.blit(bg, (0, 0))
+        screen.blit(bg, (bg_x, 0))
+        if bg_x > 0:
+            screen.blit(bg, (bg_x - 1000, 0))
+        else:
+            screen.blit(bg, (bg_x + 1000, 0))
         for bul in bullets:
             bul.draw(screen)
         enemy.draw(screen)
@@ -791,6 +795,7 @@ while True:
         mjp = 12
         spid.jumpcount = mjp
     if d == 41:
+        s = 0
         spid.y = 565
         spid.x = 500
         enemy.y = 565
@@ -1124,8 +1129,8 @@ while True:
                     pygame.mixer.music.play(-1)
                 if birdie.tr <= 1:
                     d = 10
-                rt = 0
-                birdie.tr += 1
+                    rt = 0
+                    birdie.tr += 1
         #_ delete out of map bullet
         else:
             try:
@@ -1352,11 +1357,15 @@ while True:
                 game_over = True
                 maze = False
                 spid.x = 0
+                pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                pygame.mixer.music.play(-1)
             if score >= 10:
                 justS = True
                 solved = True
                 maze = False
                 game_over = True
+                pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                pygame.mixer.music.play(-1)
             xsh += xs_change
             ysh += ys_change
             snake_Head = [xsh, ysh]
@@ -1368,6 +1377,8 @@ while True:
                     game_over = True
                     maze = False
                     spid.x = 0
+                    pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                    pygame.mixer.music.play(-1)
             foodhitbox = pygame.Rect(foodx, foody, snake_block, snake_block)
             if pygame.Rect.colliderect(foodhitbox, pygame.Rect(xsh, ysh, snake_block, snake_block)):
                 foodx = round(random.randrange(0, 1000 - snake_block) / 10.0) * 10.0
@@ -1451,6 +1462,8 @@ while True:
                 spid.x = 0
                 maze = False
                 game_over = True
+                pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                pygame.mixer.music.play(-1)
             if field[yp//block][xp//block] == 0:
                 smell = 0
             if field[yp//block][xp//block] == 2:
@@ -1459,11 +1472,15 @@ while True:
                 spid.x = 0
                 maze = False
                 game_over = True
+                pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                pygame.mixer.music.play(-1)
             if field[yp//block][xp//block] == 4:
                 justS = True
                 solved = True
                 maze = False
                 game_over = True
+                pygame.mixer.music.load("pyg/Mus_chokedup.oga")
+                pygame.mixer.music.play(-1)
             clock.tick(speed)
 
     #_ boss room 1
@@ -1478,6 +1495,7 @@ while True:
 
     #_ boss room 2
     if boss and room == 2:
+        d = 0
         if flyingBoss.pos == 0:
             if flyingBoss.x + flyingBoss.vel <= -200:
                 flyingBoss.x += flyingBoss.vel
@@ -1833,24 +1851,47 @@ while True:
         frag += 1
         spid.score += 9
 
-    if keys[pygame.K_RIGHT] and spid.x + spid.vel <= 1000 - 60 and not maze:
+    if keys[pygame.K_RIGHT] and spid.x + spid.vel <= 1000 - spid.width and not maze and not isWeb:
         spid.x += spid.vel
         spid.right = True
         spid.left = False
         spid.last = 0
-    elif keys[pygame.K_LEFT] and spid.x - spid.vel >= 0 and not isWeb and not maze:
+        if room != 5:
+            bg_x -= spid.vel
+            if bg_x <= -1000:
+                bg_x = 0
+            if d == 5:
+                bx -= 2
+            enemy.x -= 1
+            birdie.x -= 2
+        else:
+            bg_x = 0
+    if keys[pygame.K_LEFT] and spid.x - spid.vel >= 0 and not isWeb and not maze:
         spid.x -= spid.vel
         spid.right = False
         spid.left = True
         spid.last = 1
+        if room != 5:
+            bg_x += spid.vel
+            if bg_x >= 1000:
+                bg_x = 0
+            if d == 5:
+                bx += 2
+            enemy.x += 1
+            birdie.x += 2
+        else:
+            bg_x = 0
     else:
-        if spid.left:
-            spid.last = 1
-        elif spid.right:
-            spid.last = 0
-        spid.left = False
-        spid.right = False
-        spid.walkC = 0
+        if keys[pygame.K_RIGHT] and spid.x + spid.vel <= 1000 - spid.width and not maze and not isWeb:
+            q = 1
+        else:
+            if spid.left:
+                spid.last = 1
+            elif spid.right:
+                spid.last = 0
+            spid.left = False
+            spid.right = False
+            spid.walkC = 0
 
     if keys[pygame.K_SPACE] and not maze:
         facing = 1
@@ -1862,7 +1903,7 @@ while True:
                 Bullet(round(spid.x + spid.width // 2), round(spid.y + spid.height // 2), 5, facing))
 
     if not spid.isjump and not isWeb and not maze:
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] and s < 100:
             spid.isjump = True
     elif spid.isjump and not maze:
         if spid.jumpcount >= -mjp:
@@ -1902,3 +1943,4 @@ while True:
 
     #_ update display
     updater()
+    clock.tick(72)
