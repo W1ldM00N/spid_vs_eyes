@@ -278,9 +278,6 @@ class Level:
                 enemy.fight()
             elif ran == 2 and self.l_no >= 2:
                 enemy = Enemy("flyer", self.player, 80, 0.07, 3.5, 0, 20, 30)
-
-                self.door.remove(self.tiles)
-                self.door = DoorTile((-1000, -1000), [self.tiles], self.l_no)
                 enemy.fight()
             self.start = True
         if self.player.rect.colliderect(self.door.rect):
